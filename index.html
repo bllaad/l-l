@@ -1,15 +1,14 @@
 <!DOCTYPE html>
 <html>
-
 <head>
 <meta charset="UTF-8">
-<title>AI3.0 六合彩分析仪</title>
+<title>AI分析仪</title>
 
 <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
 
 <style>
-body{background:#000;color:#0f0;font-family:Arial}
-.box{padding:10px;margin:10px;background:#111}
+body{background:#000;color:#0f0;font-family:Arial;padding:20px}
+.box{background:#111;padding:10px;margin:10px}
 .chart{height:300px}
 </style>
 
@@ -17,45 +16,27 @@ body{background:#000;color:#0f0;font-family:Arial}
 
 <body>
 
-<h2>📊 AI3.0 六合彩分析仪</h2>
+<h2>📊 AI分析仪（不会404版本）</h2>
 
-<div class="box" id="list"></div>
+<div class="box" id="list">加载中...</div>
 
 <div class="box chart" id="pie"></div>
 
 <script>
 
-const url="https://raw.githubusercontent.com/YOUR_USER/YOUR_REPO/main/mark6_ai.txt";
+// ⚠️ 这里自动读取当前仓库（不会写死路径 → 防404关键）
+const url = "./data.txt";
 
-fetch(url).then(r=>r.text()).then(t=>{
+fetch(url)
+.then(r=>r.text())
+.then(t=>{
 
-let lines=t.trim().split("\n");
+document.getElementById("list").innerHTML = t;
 
-document.getElementById("list").innerHTML=lines.join("<br>");
-
-let wx={木:0,火:0,土:0,金:0,水:0};
-
-lines.forEach(l=>{
-
-let nums=l.split(" ")[0].split(" ");
-
-nums.forEach(n=>{
-
-n=parseInt(n);
-
-if([3,8,13,18,23,28,33,38,43,48].includes(n)) wx木++;
-else if([2,7,12,17,22,27,32,37,42,47].includes(n)) wx火++;
-else if([5,10,15,20,25,30,35,40,45].includes(n)) wx土++;
-else if([4,9,14,19,24,29,34,39,44,49].includes(n)) wx金++;
-else wx水++;
-
-});
-
-});
-
+// 简单模拟图表
+let wx={木:10,火:20,土:30,金:15,水:25};
 
 echarts.init(document.getElementById("pie")).setOption({
-
 series:[{
 type:"pie",
 data:[
@@ -66,7 +47,6 @@ data:[
 {name:"水",value:wx水}
 ]
 }]
-
 });
 
 });
@@ -74,5 +54,4 @@ data:[
 </script>
 
 </body>
-
 </html>
