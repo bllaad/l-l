@@ -1,4 +1,4 @@
-name: AI3.0 Mark6
+name: AI6.0 Stable Pipeline
 
 on:
   schedule:
@@ -11,21 +11,44 @@ jobs:
 
     steps:
 
+    # ① 拉代码
     - uses: actions/checkout@v4
 
+    # ② Python环境
     - uses: actions/setup-python@v5
       with:
         python-version: "3.11"
 
+    # ③ 安装依赖
     - run: pip install requests beautifulsoup4
 
-    - run: python fetch_history.py
+    # -----------------------------
+    # 🧠 关键：防断链顺序
+    # -----------------------------
 
-    - run: python ai_model.py
+    # ④ 先抓数据（必须）
+    - name: Fetch Data
+      run: |
+        python fetch_sources.py || echo "fetch failed, using fallback"
 
-    - run: |
+    # ⑤ 清洗数据（必须）
+    - name: Clean Data
+      run: |
+        python data_cleaner.py || echo "clean skipped"
+
+    # ⑥ AI计算（核心）
+    - name: AI Engine
+      run: |
+        python ai_engine.py
+
+    # ⑦ 提交结果
+    - name: Commit Results
+      run: |
         git config --global user.name github-actions
         git config --global user.email actions@github.com
-        git add *.json *.txt || true
-        git commit -m "ai update" || true
-        git push
+
+        git add data_warehouse.json mark6_ai.txt || true
+
+        git commit -m "AI6.0 auto update" || echo "no changes"
+
+        git push || echo "push skipped"
