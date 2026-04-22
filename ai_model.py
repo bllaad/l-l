@@ -1,11 +1,8 @@
 import json
-from collections import defaultdict
 
-data = json.load(open("mark6_history.json"))
+data = json.load(open("data_warehouse.json"))
 
-# ------------------------
-# 五行映射
-# ------------------------
+
 WX = {
 "木":[3,8,13,18,23,28,33,38,43,48],
 "火":[2,7,12,17,22,27,32,37,42,47],
@@ -14,125 +11,48 @@ WX = {
 "水":[1,6,11,16,21,26,31,36,41,46]
 }
 
+
 def ele(n):
     for k,v in WX.items():
         if n in v:
             return k
 
-# ------------------------
-# ① 时间衰减权重
-# ------------------------
-def time_weight(i, total):
-    return 1 / (total - i + 1)
 
-
-# ------------------------
-# ② 热度统计
-# ------------------------
-hot = defaultdict(int)
-
-# ------------------------
-# ③ 特别号周期
-# ------------------------
-special_gap = defaultdict(list)
-last_seen = {}
-
-for i,d in enumerate(data):
-
-    for n in d["main"]:
-        hot[n] += 1
-
-    sp = d["special"]
-
-    if sp in last_seen:
-        special_gap[sp].append(i - last_seen[sp])
-
-    last_seen[sp] = i
-
-
-# 平均周期
-avg_cycle = {}
-
-for k,v in special_gap.items():
-
-    if len(v)>0:
-        avg_cycle[k] = sum(v)/len(v)
-
-
-# ------------------------
-# AI评分函数
-# ------------------------
-def score(item, i, total):
-
-    main = item["main"]
-    sp = item["special"]
+def score(d):
 
     s = 0
 
-    # 五行
-    for n in main:
+    for n in d["main"]:
 
         e = ele(n)
 
-        if e in ["火","木"]:
-            s += 2
+        s += 2 if e in ["火","木"] else 1
 
-        if e in ["金","水"]:
-            s += 1
-
-    # 热度
-    for n in main:
-        s += hot[n] * 0.05
-
-    # 冷号补偿
-    for n in range(1,50):
-        if hot[n] == 0:
-            s += 0.1
-
-    # 时间衰减
-    s *= time_weight(i,total)
-
-    # 特别号周期匹配
-    if sp in avg_cycle:
-
-        expected = avg_cycle[sp]
-
-        gap = total - last_seen[sp]
-
-        diff = abs(gap - expected)
-
-        s += max(0, 5 - diff*0.2)
+    # 稳定权重（AI6.0核心）
+    s += d["special"] * 0.01
 
     return s
 
 
-# ------------------------
-# 评分所有数据
-# ------------------------
-scored = []
+results = []
 
-for i,d in enumerate(data):
+for d in data:
 
-    s = score(d,i,len(data))
-
-    scored.append((d["main"],d["special"],s))
+    results.append((d["main"], d["special"], score(d)))
 
 
-scored.sort(key=lambda x:-x[2])
+results.sort(key=lambda x:-x[2])
 
 
-# ------------------------
-# 输出
-# ------------------------
 with open("mark6_ai.txt","w") as f:
 
-    for m,s,sc in scored[:12]:
+    for m,s,sc in results[:15]:
 
         f.write(
             " ".join(f"{x:02d}" for x in m)
             + " + "
             + f"{s:02d}"
-            + f" #AI4.0:{round(sc,2)}\n"
+            + f" #AI6.0:{round(sc,2)}\n"
         )
 
-print("AI4.0 done")
+print("✅ AI6.0 engine done")
